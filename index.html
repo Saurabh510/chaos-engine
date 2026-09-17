@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Chaos Engine — The Rules Are the Fractal</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-phase="BOOT">
+<div id="app">
+
+  <header id="hud" class="hidden" aria-label="Game status">
+    <div class="hud-block"><span class="hud-k">SCORE</span><span class="hud-v" id="hud-score">0</span></div>
+    <div class="hud-block"><span class="hud-k">BEST</span><span class="hud-v" id="hud-best">0</span></div>
+    <div class="hud-block"><span class="hud-k">LEVEL</span><span class="hud-v" id="hud-level">LV 1</span><span class="hud-sub" id="hud-levelname"></span></div>
+    <div class="hud-block"><span class="hud-k">WAVE</span><span class="hud-v" id="hud-wave">1 / 3</span></div>
+    <div class="hud-block"><span class="hud-k">LIVES</span><span class="hud-v" id="hud-lives">♥♥♥</span></div>
+    <div class="hud-block"><span class="hud-k">TIME</span><span class="hud-v" id="hud-clock">—</span></div>
+    <div class="hud-block"><span class="hud-k">COMBO</span><span class="hud-v combo" id="hud-combo"></span></div>
+    <div class="hud-block"><span class="hud-k">MODE</span><span class="hud-v" id="hud-diff">EASY</span></div>
+  </header>
+
+  <main id="stage-wrap">
+    <div id="stage">
+      <canvas id="arena" role="img" aria-label="Sierpinski triangle game board. Your particle is a diamond; goals are triangles."></canvas>
+
+      <div id="overlay-ready" class="overlay hidden" aria-hidden="true">
+        <div class="card"><div class="ready-big" id="ready-label">READY</div></div>
+      </div>
+
+      <div id="overlay-pause" class="overlay hidden" aria-hidden="true">
+        <div class="card" role="dialog" aria-modal="true" aria-label="Paused">
+          <h2>PAUSED</h2>
+          <button id="btn-resume" class="btn primary">RESUME</button>
+          <button id="btn-restart" class="btn">RESTART</button>
+          <button id="btn-quit" class="btn">QUIT TO LEVEL SELECT</button>
+        </div>
+      </div>
+
+      <div id="overlay-result" class="overlay hidden" aria-hidden="true">
+        <div class="card" role="dialog" aria-modal="true" aria-label="Results">
+          <h2 id="res-title">LEVEL COMPLETE</h2>
+          <div id="res-stars" class="stars" aria-label="Stars earned"></div>
+          <p id="res-stats" class="res-stats"></p>
+          <button id="btn-retry" class="btn primary">RETRY</button>
+          <button id="btn-next" class="btn">NEXT LEVEL</button>
+          <button id="btn-to-levels" class="btn">LEVEL SELECT</button>
+        </div>
+      </div>
+
+      <div id="overlay-how" class="overlay hidden" aria-hidden="true">
+        <div class="card" role="dialog" aria-modal="true" aria-label="How it works">
+          <h2>HOW IT WORKS</h2>
+          <p>Each move travels <strong>halfway toward one of three fixed attractors</strong>.</p>
+          <p>Repeat that rule and the <strong>Sierpinski triangle</strong> emerges — and every place you can ever stand is on it.</p>
+          <p>Keys: <strong>1 / 2 / 3</strong> jump to an attractor · <strong>arrow keys / WASD</strong> jump toward that direction from YOU · <strong>H</strong> hint · <strong>P</strong> pause · <strong>M</strong> mute · <strong>R</strong> restart.</p>
+          <button id="btn-how-close" class="btn primary">CLOSE</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="coach" class="hidden" aria-label="Coach route">
+      <span id="coach-route" aria-live="off">NEXT —</span>
+      <span id="coach-hint"></span>
+    </div>
+
+    <div id="tutstrip" class="hidden" aria-label="Tutorial">
+      <p id="tut-text"></p>
+      <div class="tut-row">
+        <button id="btn-tut-skip" class="btn small">SKIP</button>
+        <button id="btn-tut-next" class="btn small primary" style="display:none">START LEVEL 1</button>
+      </div>
+    </div>
+
+    <div id="deck" class="hidden" aria-label="Attractor controls">
+      <div class="tools">
+        <button id="btn-hint" class="btn tool" aria-label="Toggle hint route" aria-pressed="true">HINT</button>
+        <button id="btn-pause" class="btn tool" aria-label="Pause or resume">PAUSE</button>
+        <button id="btn-sound" class="btn tool" aria-label="Toggle sound" aria-pressed="true">🔊 ON</button>
+      </div>
+      <div class="attractors">
+        <button id="btn-a0" class="btn attract" aria-label="Jump toward attractor 1, top"><span class="a-num">① 1</span><span class="a-name">TOP</span></button>
+        <button id="btn-a1" class="btn attract" aria-label="Jump toward attractor 2, left"><span class="a-num">② 2</span><span class="a-name">LEFT</span></button>
+        <button id="btn-a2" class="btn attract" aria-label="Jump toward attractor 3, right"><span class="a-num">③ 3</span><span class="a-name">RIGHT</span></button>
+      </div>
+    </div>
+  </main>
+
+  <section id="screen-title" class="screen hidden" aria-label="Title screen">
+    <h1>CHAOS ENGINE</h1>
+    <p class="tagline">THE RULES ARE THE FRACTAL</p>
+    <p class="micro">One rule: jump halfway to an attractor. The reachable world <em>is</em> the Sierpinski triangle.</p>
+    <div class="menu">
+      <button id="btn-play" class="btn primary big">PLAY</button>
+      <button id="btn-tutorial" class="btn big">TUTORIAL</button>
+      <button id="btn-levels" class="btn big">LEVELS</button>
+      <button id="btn-daily" class="btn big">DAILY <span id="daily-label"></span></button>
+      <button id="btn-settings" class="btn big">SETTINGS</button>
+      <button id="btn-how" class="btn big">HOW IT WORKS</button>
+    </div>
+    <div class="title-row">
+      <label for="title-diff">Difficulty
+        <select id="title-diff">
+          <option value="zen">ZEN</option>
+          <option value="easy">EASY</option>
+          <option value="normal">NORMAL</option>
+          <option value="hard">HARD</option>
+          <option value="insane">INSANE</option>
+        </select>
+      </label>
+      <span id="title-best" class="best"></span>
+    </div>
+  </section>
+
+  <section id="screen-diff" class="screen hidden" aria-label="Difficulty select">
+    <h2>CHOOSE PRESSURE</h2>
+    <p class="micro">Difficulty changes targets, timers, lives and drift — <strong>never the fractal</strong>. Always 3 attractors, r = 0.5.</p>
+    <div id="diff-list" class="menu"></div>
+    <div class="menu row">
+      <button id="btn-diff-go" class="btn primary big">CONTINUE TO LEVELS</button>
+      <button id="btn-diff-back" class="btn">BACK</button>
+    </div>
+  </section>
+
+  <section id="screen-levels" class="screen hidden" aria-label="Level select">
+    <h2>LEVELS</h2>
+    <p class="micro" id="levels-diffname"></p>
+    <div id="level-grid"></div>
+    <div class="menu row">
+      <button id="btn-endless" class="btn">∞ ENDLESS</button>
+      <button id="btn-levels-back" class="btn">BACK</button>
+    </div>
+  </section>
+
+  <section id="screen-settings" class="screen hidden" aria-label="Settings">
+    <h2>SETTINGS</h2>
+    <label class="set"><input type="checkbox" id="set-sound"> SOUND</label>
+    <label class="set"><input type="checkbox" id="set-reduced"> REDUCED EFFECTS</label>
+    <label class="set"><input type="checkbox" id="set-shape"> SHAPE-ONLY MODE (no color dependence)</label>
+    <label class="set"><input type="checkbox" id="set-hint"> SHOW HINT BY DEFAULT</label>
+    <label class="set"><input type="checkbox" id="set-debug"> DIAGNOSTICS LINE</label>
+    <button id="btn-settings-back" class="btn">BACK</button>
+  </section>
+
+  <div id="toasts" aria-hidden="true"></div>
+  <div id="live" class="sr" aria-live="polite"></div>
+  <div id="live-assert" class="sr" aria-live="assertive"></div>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/config.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/ifs.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/input.js"></script>
+<script src="js/render.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
